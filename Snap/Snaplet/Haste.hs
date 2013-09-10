@@ -126,7 +126,7 @@ compile name = do
         exitCode <- waitForProcess processHandle
         stdout <- hGetContents stdoutH
         stderr <- hGetContents stderrH
-        return (exitCode, stdout ++ stderr)
+        return (exitCode, "\nHaste error:\n============\n" ++ stdout ++ stderr)
     case exitCode of
         ExitFailure _ ->
             writeBS $ cs (printf ("/*\n\n%s\n\n*/\n\nthrow %s;") message (show message) :: String)
