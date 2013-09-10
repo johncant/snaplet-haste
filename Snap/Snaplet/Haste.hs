@@ -119,5 +119,5 @@ compile name = do
     liftIO $ setCurrentDirectory wd
     case exitCode of
         ExitFailure _ ->
-            writeBS $ cs (printf ("/*\n\n%s\n\n*/\n\nconsole.log(%s);") stderr (show stderr) :: String)
+            writeBS $ cs (printf ("/*\n\n%s\n\n*/\n\nthrow %s;") stderr (show stderr) :: String)
         ExitSuccess -> serveFile (name <.> "js")
