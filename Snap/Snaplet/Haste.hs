@@ -43,6 +43,7 @@ import Snap.Util.FileServe
 import System.Directory
 import System.Exit
 import System.FilePath
+import System.IO
 import System.Process
 import Text.Printf
 
@@ -113,11 +114,19 @@ compile :: FilePath -> Handler app Haste ()
 compile name = do
     Haste hastec snapletArgs <- State.get
     let args = snapletArgs ++ [name <.> "hs"]
-    wd <- liftIO getCurrentDirectory
-    liftIO . setCurrentDirectory =<< getSnapletFilePath
-    (exitCode, stdout, stderr) <- liftIO $ readProcessWithExitCode hastec args ""
-    liftIO $ setCurrentDirectory wd
+    dir <- getSnapletFilePath
+    (exitCode, message) <- liftIO $ do
+        (_stdin, Just stdoutH, Just stderrH, processHandle) <-
+            createProcess (proc hastec args){
+                cwd = Just dir,
+                std_out = CreatePipe,
+                std_err = CreatePipe
+              }
+        exitCode <- waitForProcess processHandle
+        stdout <- hGetContents stdoutH
+        stderr <- hGetContents stderrH
+        return (exitCode, stdout ++ stderr)
     case exitCode of
         ExitFailure _ ->
-            writeBS $ cs (printf ("/*\n\n%s\n\n*/\n\nthrow %s;") stderr (show stderr) :: String)
+            writeBS $ cs (printf ("/*\n\n%s\n\n*/\n\nthrow %s;") message (show message) :: String)
         ExitSuccess -> serveFile (name <.> "js")
