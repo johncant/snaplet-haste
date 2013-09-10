@@ -35,15 +35,15 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State.Class as State
+import Data.List
 import Data.String.Conversions
 import Snap.Core
 import Snap.Snaplet
+import Snap.Util.FileServe
 import System.Directory
 import System.Exit
-import Data.List
 import System.FilePath
 import System.Process
-import Snap.Util.FileServe
 import Text.Printf
 
 
@@ -69,7 +69,6 @@ handler = do
 
 deliverJS :: FilePath -> Handler app Haste ()
 deliverJS basename = do
---     Haste hastec args <- State.get
     hsExists <- liftIO $ doesFileExist (basename <.> "hs")
     when (not hsExists) mzero
     snapletDir <- getSnapletFilePath
@@ -109,6 +108,7 @@ isJSNewer jsFile dir = do
         return $ if is then (a : yes, no) else (yes, a : no)
     partitionM pred [] = return ([], [])
 
+-- | Recompiles the file and serves it in case of success.
 compile :: FilePath -> Handler app Haste ()
 compile name = do
     Haste hastec snapletArgs <- State.get
