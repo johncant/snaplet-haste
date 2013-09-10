@@ -1,7 +1,7 @@
 {-# language OverloadedStrings #-}
 
 -- | Snaplet that serves javascript files compiled with haste 
---   (https://github.com/valderman/haste-compiler). This Snaplet is meant to be
+--   (<https://github.com/valderman/haste-compiler>). This Snaplet is meant to be
 --   used for development. You can work on client side Haskell code and
 --   immedietely test the code with a simple browser reload. It certainly adds
 --   some overhead and is not meant to be used in production websites.
@@ -15,9 +15,10 @@
 -- * Other files won't be served through http. The snaplet will 'mzero' on .hs,
 --   .hi, .o and all other files.
 --
--- * The haste snaplet does not track haskell import dependencies. When any
---   haskell file in the snaplet path is newer than the requested javascript
---   file, it will be recompiled.
+-- * If any haskell file in the snaplet path is newer than the
+--   requested javascript file, it will be recompiled.  The haste
+--   snaplet does not track haskell import dependencies: recompilation
+--   happens whether the js file is requested or not.
 --
 -- * If hastec exits with an error code this snaplet will serve a special
 --   javascript file that contains the error message as a comment and a
