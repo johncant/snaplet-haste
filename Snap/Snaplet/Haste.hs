@@ -1,5 +1,30 @@
 {-# language OverloadedStrings #-}
 
+-- | Snaplet that serves javascript files compiled with haste 
+--   (https://github.com/valderman/haste-compiler). This Snaplet is meant to be
+--   used for development. You can work on client side Haskell code and
+--   immedietely test the code with a simple browser reload. It certainly adds
+--   some overhead and is not meant to be used in production websites.
+--
+-- Usage:
+--
+-- Put haskell source files in the snaplet path (e.g. @$ROOT\/snaplets\/haste@).
+-- For every such haskell file there will be a new javascript file available via
+-- http.
+--
+-- * Other files won't be served through http. The snaplet will 'mzero' on .hs,
+--   .hi, .o and all other files.
+--
+-- * The haste snaplet does not track haskell import dependencies. When any
+--   haskell file in the snaplet path is newer than the requested javascript
+--   file, it will be recompiled.
+--
+-- * If hastec exits with an error code this snaplet will serve a special
+--   javascript file that contains the error message as a comment and a
+--   javascript command that will raise the error message as a javascript
+--   exception.
+
+
 module Snap.Snaplet.Haste (
     Haste,
     initialize,
@@ -22,8 +47,10 @@ import Snap.Util.FileServe
 import Text.Printf
 
 
+-- | Internal data type for the haste snaplet.
 data Haste = Haste FilePath [String]
 
+-- | Initializes the haste snaplet. Use it with e.g. 'nestSnaplet'.
 initialize :: SnapletInit app Haste
 initialize = makeSnaplet "haste" description Nothing $ do
     addRoutes [("", handler)]
