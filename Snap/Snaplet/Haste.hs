@@ -24,11 +24,17 @@
 --   javascript file that contains the error message as a comment and a
 --   javascript command that will raise the error message as a javascript
 --   exception.
-
+-- 
+-- Please add such a handler to your routes:
+--
+--   [ ...
+--   , ("" , with haste hasteServe)
+--   ]
 
 module Snap.Snaplet.Haste (
     Haste,
     initialize,
+    hasteServe,
   ) where
 
 
@@ -55,13 +61,12 @@ data Haste = Haste FilePath [String]
 -- | Initializes the haste snaplet. Use it with e.g. 'nestSnaplet'.
 initialize :: SnapletInit app Haste
 initialize = makeSnaplet "haste" description Nothing $ do
-    addRoutes [("", handler)]
     return $ Haste "hastec" []
   where
     description = "handler for delivering javascript files compiled with haste"
 
-handler :: Handler app Haste ()
-handler = do
+hasteServe :: Handler app Haste ()
+hasteServe = do
     jsPath <- cs <$> rqPathInfo <$> getRequest
     hasteDir <- getSnapletFilePath
     if takeExtension jsPath /= ".js" then
