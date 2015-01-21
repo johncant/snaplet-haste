@@ -1,4 +1,5 @@
 {-# language OverloadedStrings #-}
+{-# language TemplateHaskell #-}
 
 -- | Snaplet that serves javascript files compiled with haste 
 --   (<https://github.com/valderman/haste-compiler>). This Snaplet is meant to be
@@ -33,6 +34,7 @@
 
 module Snap.Snaplet.Haste (
     Haste,
+    snapletArgs,
     initialize,
     hasteServe,
   ) where
@@ -42,6 +44,7 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State.Class as State
+import Control.Lens (makeLenses)
 import Data.List
 import Data.String.Conversions
 import Snap.Core
@@ -56,12 +59,16 @@ import Text.Printf
 
 
 -- | Internal data type for the haste snaplet.
-data Haste = Haste FilePath [String]
+data Haste = Haste { _hastec :: FilePath
+                   , _snapletArgs :: [String]
+                   }
+
+makeLenses ''Haste
 
 -- | Initializes the haste snaplet. Use it with e.g. 'nestSnaplet'.
-initialize :: SnapletInit app Haste
-initialize = makeSnaplet "haste" description Nothing $ do
-    return $ Haste "hastec" []
+initialize :: [String] -> SnapletInit app Haste
+initialize args = makeSnaplet "haste" description Nothing $ do
+    return $ Haste "hastec" args
   where
     description = "handler for delivering javascript files compiled with haste"
 
