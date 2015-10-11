@@ -32,8 +32,8 @@
 --   , ("" , with ghcjs ghcjsServe)
 --   ]
 
-module Snap.Snaplet.Haste (
-    Haste,
+module Snap.Snaplet.GHCJS (
+    GHCJS,
     snapletArgs,
     initialize,
     ghcjsServe,
@@ -60,19 +60,19 @@ import Text.Printf
 
 
 -- | Internal data type for the ghcjs snaplet.
-data Haste = Haste { _ghcjsc :: FilePath
+data GHCJS = GHCJS { _ghcjsc :: FilePath
                    , _snapletArgs :: [String]
                    }
 
-makeLenses ''Haste
+makeLenses ''GHCJS
 
 -- | Initializes the ghcjs snaplet. Use it with e.g. 'nestSnaplet'.
-initialize :: [String] -> SnapletInit app Haste
+initialize :: [String] -> SnapletInit app GHCJS
 initialize args = makeSnaplet "ghcjs" description Nothing $ do
     cabalPackageDBs <- liftIO parseCabalPackageDBs
     let packageArgs = cabalPackageDBs >>= (\a -> ["-package-db", a])
     liftIO $ mapM_ putStrLn packageArgs
-    return $ Haste "ghcjs" (packageArgs ++ args)
+    return $ GHCJS "ghcjs" (packageArgs ++ args)
   where
     description = "handler for delivering javascript files compiled with ghcjs"
 
@@ -112,18 +112,16 @@ parseCabalPackageDBs = do
         return []
 
 
-ghcjsServe :: Handler app Haste ()
+ghcjsServe :: Handler app GHCJS ()
 ghcjsServe = do
     jsPath <- cs <$> rqPathInfo <$> getRequest
-    liftIO $ putStrLn jsPath
-    liftIO $ putStrLn "Woohoo! Handling GHCJS"
     ghcjsDir <- getSnapletFilePath
     if takeExtension jsPath /= ".js" then
         mzero
       else
         deliverJS (dropExtension (ghcjsDir </> jsPath))
 
-deliverJS :: FilePath -> Handler app Haste ()
+deliverJS :: FilePath -> Handler app GHCJS ()
 deliverJS basename = do
     hsExists   <- liftIO $ doesFileExist (basename <.> "hs")
 
@@ -170,9 +168,9 @@ isJSNewer jsFile dir = do
     partitionM pred [] = return ([], [])
 
 -- | Recompiles the file and serves it in case of success.
-compile :: FilePath -> Handler app Haste ()
+compile :: FilePath -> Handler app GHCJS ()
 compile name = do
-    Haste
+    GHCJS
       ghcjsc
       snapletArgs       <- State.get
     let args            =  snapletArgs ++ [name <.> "hs"]
@@ -191,7 +189,7 @@ compile name = do
         stdout   <- hGetContents stdoutH
         stderr   <- hGetContents stderrH
 
-        return (exitCode, "\nHaste error:\n============\n" ++ stdout ++ stderr)
+        return (exitCode, "\nGHCJS error:\n============\n" ++ stdout ++ stderr)
 
     case exitCode of
         ExitFailure _ ->

@@ -1,6 +1,7 @@
-snaplet-haste
+snaplet-ghcjs
 =============
 
-Snaplet that serves javascript files compiled from haskell files with haste.
+Snaplet that serves javascript files compiled from haskell files with GHCJS.
 
-For more information, see https://github.com/soenkehahn/snaplet-haste/blob/master/Snap/Snaplet/Haste.hs.
+For more information, see https://github.com/johncant/snaplet-haste/blob/ghcjs/Snap/Snaplet/GHCJS.hs.
+
